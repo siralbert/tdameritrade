@@ -64,8 +64,8 @@ def authentication(client_id, redirect_uri, tdauser=None, tdapass=None):
     # Fully automated oauth2 authentication (if tdauser and tdapass were inputed into the function, or found as
     # environment variables)
     if tdauser and tdapass:
-        ubox = driver.find_element_by_id("username")
-        pbox = driver.find_element_by_id("password")
+        ubox = driver.find_element_by_id("username0")
+        pbox = driver.find_element_by_id("password1")
         ubox.send_keys(tdauser)
         pbox.send_keys(tdapass)
         driver.find_element_by_id("accept").click()
