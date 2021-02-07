@@ -1,5 +1,11 @@
 import pandas as pd
 import os
+import sys
+
+# add dependencies
+from datetime import timedelta, date
+import datetime, time
+
 from .session import TDASession
 from .exceptions import handle_error_response, TDAAPIError
 from .urls import (
@@ -501,6 +507,60 @@ class TDClient(object):
 
         price = price / 100
         return price
+
+    # added feature
+    def modifyAlert(self, price_level):
+        # allow updating of price_level for alert method
+        self.price_level = price_level
+        return
+
+    # CONNECTIVITY BUGS - DEFINE EXCEPTION HANDLERS for connectivity errors in response:
+    def alert(self, symbol, price_level, type='SL', time_delay=15*60):
+        # 'alert' monitor async function??
+        # init self.price_level
+        self.price_level = price_level
+        triggered = False
+        # run loop until price triggers at level
+        while (not triggered): # check if token active, def another function in object?
+            time.sleep(2)
+            last = self.quote(symbol)[symbol]['lastPrice']
+
+            # add input method [price_level]
+#            val = input("\nEnter new price level: ")
+#            modifyAlert(val)
+
+
+            sys.stdout.write("\rPrice: %.2f" % last)
+            sys.stdout.flush()
+
+            if type == 'SL' and last < self.price_level:   # SL: real-time price triggers below price_level
+                now = datetime.datetime.now()
+                current_time = now.strftime("%H:%M")
+                print("\nFirst Trigger at :",current_time)
+                time.sleep(time_delay)                # wait a time delay before returning 1
+                last = self.quote(symbol)[symbol]['lastPrice']
+                if type == 'SL' and last < self.price_level:
+                    triggered = True
+                    now = datetime.datetime.now()
+                    current_time = now.strftime("%H:%M")
+
+                    print(str(last))
+
+                    print("Send order at: ",current_time)
+                    return 1
+            elif type == 'PT' and last > self.price_level: # PT: real-time price triggers above price_level
+                time.sleep(time_delay)                # wait a time delay before returning 1
+                last = self.quote(symbol)[symbol]['lastPrice']
+                if type == 'PT' and last > self.price_level:
+                    triggered = True
+                    now = datetime.datetime.now()
+                    current_time = now.strftime("%H:%M")
+
+                    print(str(last))
+
+                    print("Send order at: ",current_time)
+                    return 1
+
 
     def movers(self, index, direction="up", change="percent"):
         """request market movers
