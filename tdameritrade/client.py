@@ -69,10 +69,14 @@ from .urls import (
     UPDATE_WATCHLIST,
 )
 
+# utilities
+def debug(**kwargs):
+    for key, value in kwargs.items():
+        print("%s: %s" %(key, value), end=" ")
+    print();
 
 def response_is_valid(resp):
     return resp.status_code in (200, 201, 204)
-
 
 class TDClient(object):
     def __init__(self, client_id=None, refresh_token=None, account_ids=None):
@@ -468,6 +472,35 @@ class TDClient(object):
             df[col] = pd.to_datetime(df[col], unit="ms")
 
         return df
+
+    def midpoint(self, symbol, order_type='BUY'):
+        bid = self.quote(symbol)[symbol]['bidPrice']
+        ask = self.quote(symbol)[symbol]['askPrice']
+        debug(Bid = str(bid), Ask = str(ask))
+        midpoint = (bid + ask) / 2
+        midpoint = self.optionAlgo(order_type, midpoint)
+        #TESTING
+#        midpoint = midpoint + 0.30
+        return midpoint
+
+    # define buckets to automatically use proper base_adjust according to
+    # underlying price
+    def optionAlgo(self, order_type, price, adjust=1):
+        price = price * 100
+        base_adjust = 5
+        adjust = adjust * base_adjust
+
+        if order_type == 'BUY':
+            print("Price: " +  str(round(price / 100,2)) + "+ Adjust: " + str(round(adjust / 100,2)))
+            price = price + price % 5
+        else: # order_type == 'SELL'
+            print("Price: " +  str(round(price / 100,2)) + "- Adjust: " + str(round(adjust / 100,2)))
+            price = price - price % 5
+
+        print("Price after adjustment: " + str(round(price / 100,2)))
+
+        price = price / 100
+        return price
 
     def movers(self, index, direction="up", change="percent"):
         """request market movers
