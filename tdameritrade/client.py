@@ -5,6 +5,8 @@ import sys
 # add dependencies
 from datetime import timedelta, date
 import datetime, time
+import json
+import requests
 
 from .session import TDASession
 from .exceptions import handle_error_response, TDAAPIError
@@ -90,6 +92,13 @@ class TDClient(object):
         self._refreshToken = refresh_token or os.environ["TDAMERITRADE_REFRESH_TOKEN"]
         self.accountIds = account_ids or []
         self.session = TDASession(self._refreshToken, self._clientId)
+
+    def _headers(self):
+        return {'Authorization': 'Bearer ' + self._refreshToken}
+
+    def _post_headers(self):
+        return {'Authorization': 'Bearer ' + self._refreshToken,
+                "Content-Type":"application/json"}
 
     def _request(self, url, method="GET", params=None, *args, **kwargs):
         resp = self.session.request(method, url, params=params, *args, **kwargs)
@@ -629,16 +638,64 @@ class TDClient(object):
             CANCEL_ORDER.format(accountId=accountId, orderId=orderId), method="DELETE"
         )
 
-    def placeOrder(self, accountId, order):
+    def placeOrder(self, instruction, size, symbol, orderType, price, duration='DAY', session='NORMAL', assetType='OPTION', strategy='SINGLE'):
+
+        # Buy Limit: Single Option
+        payload="""
+        {
+          "complexOrderStrategyType": "NONE",
+          "orderType": "LIMIT",
+          "session": "NORMAL",
+          "price": "0.05",
+          "duration": "DAY",
+          "orderStrategyType": "SINGLE",
+          "orderLegCollection": [
+            {
+              "instruction": "BUY_TO_OPEN",
+              "quantity": 1,
+              "instrument": {
+                "symbol": "AGN_010320C185",
+                "assetType": "OPTION"
+              }
+            }
+          ]
+        }
+        """
+
+        url = r"https://api.tdameritrade.com/v1/accounts/{}/orders".format(self.accountIds)
+    # Use json.loads to deserialize json string and
+    # convert to json obj for manip.
+        data = json.loads(str(payload))
+        data['orderType'] = orderType
+        data['session'] = session
+        data['price'] = str(round(price,2))
+        data['duration'] = duration
+        data['orderStrategyType']=strategy
+        data['orderLegCollection'][0]['instruction']=instruction
+        data['orderLegCollection'][0]['quantity']=size
+        data['orderLegCollection'][0]['instrument']['symbol']=symbol
+        data['orderLegCollection'][0]['instrument']['assetType']=assetType
+
+        print(data)
+#        print(self.accountIds)
+#        print(self._post_headers())
+#        response = requests.post(url, json=data, headers=self._post_headers())
+#        print(response.json())
+#        print(response.status_code) # 200 means OK
+#        return response
+        return self._request(PLACE_ORDER.format(accountId=os.getenv('TDAMERITRADE_ACCOUNT_ID')), method="POST",json=data)
+
+
+#    def placeOrder(self, accountId, order):
         """place an order
 
         Args:
             accountId (int): id of account to place order under
             order (JSON): order instance to place
         """
-        return self._request(
-            PLACE_ORDER.format(accountId=accountId), method="POST", json=order
-        )
+#        return self._request(
+#            PLACE_ORDER.format(accountId=accountId), method="POST", json=order
+#        )
 
     def replaceOrder(self, accountId, orderId, order):
         """place an order
