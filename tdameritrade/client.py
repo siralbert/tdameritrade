@@ -492,7 +492,8 @@ class TDClient(object):
         bid = self.quote(symbol)[symbol]['bidPrice']
         ask = self.quote(symbol)[symbol]['askPrice']
         debug(Bid = str(bid), Ask = str(ask))
-        midpoint = (bid + ask) / 2
+#        midpoint = (bid + ask) / 2
+        midpoint = self.quote(symbol)[symbol]['mark']
         midpoint = self.optionAlgo(order_type, midpoint)
         #TESTING
 #        midpoint = midpoint + 0.30
