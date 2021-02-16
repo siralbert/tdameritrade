@@ -92,6 +92,7 @@ class TDClient(object):
         self._refreshToken = refresh_token or os.environ["TDAMERITRADE_REFRESH_TOKEN"]
         self.accountIds = account_ids or []
         self.session = TDASession(self._refreshToken, self._clientId)
+        self.connected = True
 
     def _headers(self):
         return {'Authorization': 'Bearer ' + self._refreshToken}
@@ -105,6 +106,12 @@ class TDClient(object):
         if not response_is_valid(resp):
             handle_error_response(resp)
         return resp
+
+    def isConnected(self):
+        if self.connected == True:
+            return True
+        else:
+            return False
 
     def accounts(self, positions=False, orders=False):
         """get user accounts. caches account ids in accountIds if not provided during initialization
