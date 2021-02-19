@@ -8,6 +8,8 @@ import datetime, time
 import json
 import requests
 import asyncio
+from colorama import Fore
+from colorama import Style
 
 from .session import TDASession
 from .exceptions import handle_error_response, TDAAPIError
@@ -509,6 +511,10 @@ class TDClient(object):
         midpoint = self.optionAlgo(order_type, midpoint)
         return midpoint
 
+    def intOptionValue(self, symbol, strike, order_type='BUY'):
+        last = self.quote(symbol)[symbol]['lastPrice']
+        return (last - float(strike))
+
     # define buckets to automatically use proper base_adjust according to
     # underlying price
     def optionAlgo(self, order_type, price, adjust=1):
@@ -523,7 +529,7 @@ class TDClient(object):
             print("Price: " +  str(round(price / 100,2)) + "- Adjust: " + str(round(adjust / 100,2)))
             price = price - price % 5
 
-        print("Price after adjustment: " + str(round(price / 100,2)))
+        print(f"{Fore.YELLOW}Price after adjustment: " + str(round(price / 100,2)) + f"{Style.RESET_ALL}")
 
         price = price / 100
         return price
