@@ -7,6 +7,7 @@ from datetime import timedelta, date
 import datetime, time
 import json
 import requests
+import asyncio
 
 from .session import TDASession
 from .exceptions import handle_error_response, TDAAPIError
@@ -488,15 +489,17 @@ class TDClient(object):
 
         return df
 
-    def midpoint(self, symbol, order_type='BUY'):
+    def midpoint(self, symbol, order_type='BUY', mark=False):
         bid = self.quote(symbol)[symbol]['bidPrice']
         ask = self.quote(symbol)[symbol]['askPrice']
         debug(Bid = str(bid), Ask = str(ask))
-#        midpoint = (bid + ask) / 2
-        midpoint = self.quote(symbol)[symbol]['mark']
+
+        if mark == True:
+            midpoint = self.quote(symbol)[symbol]['mark']
+        else:
+            midpoint = (bid + ask) / 2
+
         midpoint = self.optionAlgo(order_type, midpoint)
-        #TESTING
-#        midpoint = midpoint + 0.30
         return midpoint
 
     # define buckets to automatically use proper base_adjust according to
@@ -525,7 +528,7 @@ class TDClient(object):
         return
 
     # CONNECTIVITY BUGS - DEFINE EXCEPTION HANDLERS for connectivity errors in response:
-    def alert(self, symbol, price_level, type='SL', time_delay=15*60):
+    def alert(self, symbol, price_level, type='SL', time_delay=15*60,):
         # 'alert' monitor async function??
         # init self.price_level
         self.price_level = price_level
