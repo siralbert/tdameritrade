@@ -541,7 +541,7 @@ class TDClient(object):
         return
 
     # CONNECTIVITY BUGS - DEFINE EXCEPTION HANDLERS for connectivity errors in response:
-    def alert(self, symbol, price_level, type='SL', time_delay=15*60,):
+    def alert(self, symbol, price_level, type='SL', time_delay=1):
         # 'alert' monitor async function??
         # init self.price_level
         self.price_level = price_level
@@ -693,7 +693,6 @@ class TDClient(object):
         data['orderLegCollection'][0]['instrument']['symbol']=symbol
         data['orderLegCollection'][0]['instrument']['assetType']=assetType
 
-        print(data)
 #        print(self.accountIds)
 #        print(self._post_headers())
 #        response = requests.post(url, json=data, headers=self._post_headers())
